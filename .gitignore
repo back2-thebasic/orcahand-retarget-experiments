@@ -1,0 +1,8 @@
+# Only the simple sharing layout is published. Existing local files stay intact.
+/*
+!/.gitignore
+!/README.md
+!/configs/
+!/videos/
+.DS_Store
+__pycache__/
