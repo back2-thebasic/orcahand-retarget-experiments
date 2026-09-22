@@ -8,7 +8,7 @@ ORCA v1 右手 · MediaPipe · Adaptive Analytical · MuJoCo 仿真
 
 ### A：原始配置
 
-**文件：[adaptive_v1_test.yaml](configs/adaptive_v1_test.yaml)**
+**文件：[baseline.yaml](configs/baseline.yaml)**
 
 - 用途：原始对照组，保留额外指尖偏移。
 - `w_pos: 1.0`，`w_dir: 10.0`，`w_full_hand: 1.0`。
@@ -17,7 +17,7 @@ ORCA v1 右手 · MediaPipe · Adaptive Analytical · MuJoCo 仿真
 
 ### B：零偏移配置
 
-**文件：[adaptive_v1_tipframe_test.yaml](configs/adaptive_v1_tipframe_test.yaml)**
+**文件：[baseline_zero_offsets.yaml](configs/baseline_zero_offsets.yaml)**
 
 - 相对 A：五指 `fingertip_offsets_m` 均为 `[0, 0, 0]`，直接使用 URDF 指尖 frame 原点。
 - 其他 YAML 参数与 A 一致。
@@ -27,16 +27,11 @@ ORCA v1 右手 · MediaPipe · Adaptive Analytical · MuJoCo 仿真
 
 ### C：参数实验配置
 
-**文件：[adaptive_v1_experiment.yaml](configs/adaptive_v1_experiment.yaml)**
+**文件：[last.yaml](configs/last.yaml)**
 
-- 当前相对 B：`w_full_hand: 1.0 → 0.5`。
-- 修改目的：降低全手形状约束的权重，观察是否改善捏合，同时检查姿态是否退化。
-- 其他改动：无（之后修改 YAML 时，同步更新这里）。
+- 当前相对 B：`w_pos: 1.0 → 2.0`，`w_full_hand: 1.0 → 0.5`。
+- 修改目的：提高位置约束并降低全手形状约束的权重，观察是否改善捏合，同时检查姿态是否退化。
 - 补充说明：待填写。
-
-### 其他 YAML
-
-[adaptive_v2_test.yaml](configs/adaptive_v2_test.yaml)：历史 v2 配置，统一存放于 configs，本页三个场景暂不比较它。
 
 > B/C 需要 retarget 代码支持 `fingertip_offsets_m`；未修改的上游代码不一定读取此字段。本页是实验展示，不是完整软件环境。
 
@@ -56,10 +51,9 @@ Orcahand/
 │   └── v1/models/urdf/orcahand_right.urdf
 └── orca_adaptive_test/
     └── configs/
-        ├── adaptive_v1_test.yaml
-        ├── adaptive_v1_tipframe_test.yaml
-        ├── adaptive_v1_experiment.yaml
-        └── adaptive_v2_test.yaml
+        ├── baseline.yaml
+        ├── baseline_zero_offsets.yaml
+        └── last.yaml
 ```
 
 不要放进 `.venv` 或 Python 的 site-packages。已有同名实验文件时先保留旧版本，避免旧视频失去对应参数。
@@ -99,17 +93,17 @@ cd /Users/su/Code/Orcahand/orca_teleop
 
 ```bash
 # A：原始配置
-RETARGET_CONFIG=../orca_adaptive_test/configs/adaptive_v1_test.yaml
+RETARGET_CONFIG=../orca_adaptive_test/configs/baseline.yaml
 ```
 
 ```bash
 # B：五指零偏移
-RETARGET_CONFIG=../orca_adaptive_test/configs/adaptive_v1_tipframe_test.yaml
+RETARGET_CONFIG=../orca_adaptive_test/configs/baseline_zero_offsets.yaml
 ```
 
 ```bash
 # C：当前参数实验（w_full_hand=0.5）
-RETARGET_CONFIG=../orca_adaptive_test/configs/adaptive_v1_experiment.yaml
+RETARGET_CONFIG=../orca_adaptive_test/configs/last.yaml
 ```
 
 然后执行统一启动命令。直接使用虚拟环境中的 mjpython，无需先 activate：

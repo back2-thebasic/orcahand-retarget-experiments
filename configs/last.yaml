@@ -7,7 +7,7 @@ retarget:
   huber_delta_dir: 0.5
   norm_delta: 0.04
   lp_alpha: 1.0
-  w_pos: 1.0
+  w_pos: 2.0 #1.0
   w_dir: 10.0
   w_full_hand: 0.5 #1.0
   scaling: 1.0
