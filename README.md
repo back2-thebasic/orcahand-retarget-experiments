@@ -1,5 +1,5 @@
 # ORCA Hand Retargeting Test Comparison
-[English](README.md) | [Chinese](README.zh-CN.md) | [Korean](README.ko.md)
+[English](README.md) | [中文](README.zh-CN.md) | [한국어](README.ko.md)
 
 ORCA v1 right hand · MediaPipe · Adaptive Analytical · MuJoCo simulation
 
