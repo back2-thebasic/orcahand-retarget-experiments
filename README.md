@@ -2,38 +2,35 @@
 
 ORCA v1 右手 · MediaPipe · Adaptive Analytical · MuJoCo 仿真
 
-本仓库用于分享 **YAML 参数与测试视频**。先看配置改动，再按场景直接播放和比较视频。README 中使用兼容性更好的 H.264 预览，原始 MOV 可通过每段视频下方的链接下载。
+本仓库用于分享 YAML 参数与测试视频。先看配置改动，再按场景直接播放和比较视频。README 中使用兼容性更好的 H.264 预览，原始 MOV 可通过每段视频下方的链接下载
 
 ## 配置与改动说明
 
-### A：原始配置
+### A：原始官方配置
 
 **文件：[baseline.yaml](configs/baseline.yaml)**
 
-- 用途：原始对照组，保留额外指尖偏移。
-- `w_pos: 1.0`，`w_dir: 10.0`，`w_full_hand: 1.0`。
-- `norm_delta: 0.04`，`lp_alpha: 1.0`（无输出低通平滑）。
-- 补充说明：待填写。
+- 用途：作为baseline，保留额外指尖偏移
+- `w_pos: 1.0`，`w_dir: 10.0`，`w_full_hand: 1.0`
+- `norm_delta: 0.04`，`lp_alpha: 1.0`（无输出低通平滑）
 
 ### B：零偏移配置
 
 **文件：[baseline_zero_offsets.yaml](configs/baseline_zero_offsets.yaml)**
 
-- 相对 A：五指 `fingertip_offsets_m` 均为 `[0, 0, 0]`，直接使用 URDF 指尖 frame 原点。
-- 其他 YAML 参数与 A 一致。
-- 修改目的：避免在已定义的指尖位置上额外叠加指尖长度。
-- 注意：该修改也影响自动尺度标定，不是固定尺度下的纯几何对照。
-- 补充说明：待填写。
+- 相对 A：五指 `fingertip_offsets_m` 均为 `[0, 0, 0]`，直接使用 URDF 指尖 frame 原点，消除指尖偏移
+- 其他 YAML 参数与 A 一致
+- 修改目的：避免在已定义的指尖位置上额外叠加指尖长度
+- 注意：该修改也影响自动尺度标定，不是固定尺度下的纯几何对照
 
-### C：参数实验配置
+### C：调整参数后配置
 
 **文件：[last.yaml](configs/last.yaml)**
 
-- 当前相对 B：`w_pos: 1.0 → 2.0`，`w_full_hand: 1.0 → 0.5`。
-- 修改目的：提高位置约束并降低全手形状约束的权重，观察是否改善捏合，同时检查姿态是否退化。
-- 补充说明：待填写。
+- 当前相对 B：`w_pos: 1.0 → 2.0`，`w_full_hand: 1.0 → 0.5`
+- 修改目的：提高位置约束并降低全手形状约束的权重，观察是否改善捏合，同时检查姿态是否退化
 
-> B/C 需要 retarget 代码支持 `fingertip_offsets_m`；未修改的上游代码不一定读取此字段。本页是实验展示，不是完整软件环境。
+> B/C 需要 retarget 代码支持 `fingertip_offsets_m`；未修改的上游代码不一定读取此字段
 
 ## 如何下载和运行 YAML
 
@@ -60,8 +57,6 @@ Orcahand/
 
 ### 2. 运行前提
 
-下列命令用于 **macOS + 已安装依赖的 Orca 仿真环境**。下载本仓库本身不会安装 orca_teleop、orca_sim、MuJoCo、MediaPipe、Pinocchio 或 NLopt；队友需先准备同版本项目与虚拟环境。这里不使用实体机器人。
-
 B/C 的零偏移字段需要代码支持。打开 `orca_teleop/src/orca_teleop/retargeting/adaptive_analytical.py`，在 `_build_frame_indices()` 中检查是否已经读取 `fingertip_offsets_m`。本次测试使用的代码已有此支持。
 
 如果没有，将函数末尾设置 `_frame_offsets` 的那一小段替换为以下代码（放在函数内部，保持缩进），其他代码不动：
@@ -83,10 +78,10 @@ B/C 的零偏移字段需要代码支持。打开 `orca_teleop/src/orca_teleop/r
 
 ### 3. 选择 A、B 或 C，然后启动
 
-先进入 `orca_teleop`。本机路径如下；队友替换为自己的实际路径：
+先进入 `orca_teleop`，替换为自己的实际路径：
 
 ```bash
-cd /Users/su/Code/Orcahand/orca_teleop
+cd /xxx/Orcahand/orca_teleop
 ```
 
 三选一，在同一个终端设置本次配置：
@@ -102,7 +97,7 @@ RETARGET_CONFIG=../orca_adaptive_test/configs/baseline_zero_offsets.yaml
 ```
 
 ```bash
-# C：当前参数实验（w_full_hand=0.5）
+# C：当前最新配置
 RETARGET_CONFIG=../orca_adaptive_test/configs/last.yaml
 ```
 
@@ -120,13 +115,13 @@ RETARGET_CONFIG=../orca_adaptive_test/configs/last.yaml
   --retarget-config "$RETARGET_CONFIG"
 ```
 
-每行末尾的反斜杠后不要加空格。v2 YAML 不适用于这条 v1 命令。
+每行末尾的反斜杠后不要加空格。v2 YAML 不适用于这条 v1 命令
 
-启动后将右手放入摄像头，保持一致的标定姿势，等待 `auto-scale calibrated` 后开始 S01/S02/S03 与手动录屏。切换 YAML 或修改参数后，在启动终端按 Ctrl+C 完整退出，再重新启动；不要同时开启两个使用同一端口的仿真。若绿色骨架正常但仿真不动，检查 `Publisher connected` 日志，并用 `lsof -nP -iTCP:50051 -sTCP:LISTEN` 查看是否有旧实例残留。
+踩的一个坑：不要同时开启两个使用同一端口的仿真。若绿色骨架正常但仿真不动，检查 `Publisher connected` 日志，并用 `lsof -nP -iTCP:50051 -sTCP:LISTEN` 查看是否有旧实例残留
 
 ## S01：张手、半握、握拳
 
-动作：张手 → 半握 → 握拳 → 张开，各姿态保持约 3 秒，重复 5 次。
+动作：张手 → 半握 → 握拳 → 张开，重复 3 次
 
 ### A：原始配置
 
@@ -140,17 +135,17 @@ https://github.com/user-attachments/assets/29e975da-077b-48ba-9e53-38181359c819
 
 [查看或下载原始 MOV](videos/S01/S01-zero%20offsets.mov)
 
-### C：参数实验
+### C：当前最新配置
 
 https://github.com/user-attachments/assets/25fd48fd-ee29-44b5-9cb1-a7689365d1fd
 
 [查看或下载原始 MOV](videos/S01/S01-last.mov)
 
-**本场景结论：** 待填写。重点比较姿态完成程度、保持抖动和突然跳变。
+**本场景结论：** 所有yaml完成较好。B中对大拇指的reatrgert并不是太好
 
 ## S02：拇指—食指慢速捏合与释放
 
-动作：慢速靠近 → 捏合保持约 3 秒 → 慢速释放，重复 5 次。
+动作：慢速靠近 → 捏合 → 释放，重复 3 次
 
 ### A：原始配置
 
@@ -164,17 +159,17 @@ https://github.com/user-attachments/assets/8d29cfac-a2db-4344-89fa-7863eeb2a6a5
 
 [查看或下载原始 MOV](videos/S02/S02-zero%20offsets.mov)
 
-### C：参数实验
+### C：当前最新配置
 
 https://github.com/user-attachments/assets/c37a71f9-74a2-4a70-8b3a-697967042f29
 
 [查看或下载原始 MOV](videos/S02/S02-last.mov)
 
-**本场景结论：** 待填写。重点比较指尖间隙、错位、保持稳定性和释放。视觉闭合不等于已验证物理接触。
+**本场景结论：** 官方默认配置无法完成捏合动作，拇指和食指始终有间隙。B和C对该任务完成情况较好，但是B中拇指捏合时方向不太自然
 
 ## S03：三指抓持与释放
 
-动作：拇指—食指靠近 → 中指加入 → 三指保持约 3 秒 → 中指退出 → 释放，重复 5 次。
+动作：拇指—食指-中指捏合 → 释放，重复 3 次。
 
 ### A：原始配置
 
@@ -188,23 +183,22 @@ https://github.com/user-attachments/assets/57ebade0-5c62-416b-878a-cc3ec69e8192
 
 [查看或下载原始 MOV](videos/S03/S03-zero%20offsets.mov)
 
-### C：参数实验
+### C：当前最新配置
 
 https://github.com/user-attachments/assets/505e5a70-ac18-4eff-b557-5c8502d0ffa5
 
 [查看或下载原始 MOV](videos/S03/S03-last.mov)
 
-**本场景结论：** 待填写。重点比较中指加入是否破坏已有捏合、拇指跳转和释放。空手测试仅验证抓持姿态，不代表能抓住物体。
+**本场景结论：** 空手测试仅验证抓持姿态，不代表能抓住物体。官方配置依然无法捏合。B和C完成的较好，但B在松开时，对拇指的retarget不够好，拇指的IP Joint（最靠近指尖的一个关节）的retarget不太自然
 
 ## 如何添加视频
 
-1. 原始视频保存在对应的 `videos/S01/`、`S02/`、`S03/` 目录中。
-2. 普通仓库视频链接不会可靠地生成 README 内嵌播放器。README 中使用上传到 GitHub Markdown 编辑区后生成的 `user-attachments` 地址；该地址必须单独占一段。
-3. 预览视频建议使用 H.264 MP4，以获得更好的浏览器兼容性。GitHub 免费账户的视频附件通常不能超过 10 MB。
-4. README 不提供三个独立播放器的一键同步控制。若需要同时播放 A/B/C，请先合成一条带配置标签的三栏视频，以动作开始点对齐后再上传。
-5. 每次录像同时显示人手与仿真，固定标定手势和光照。更新 YAML 时也更新本页说明；已有视频仍对应旧参数时，新增配置编号，不覆盖旧参数。
+1. 原始视频保存在对应的 `videos/S01/`、`S02/`、`S03/` 目录中
+2. 普通仓库视频链接不会可靠地生成 README 内嵌播放器。README 中使用上传到 GitHub Markdown 编辑区后生成的 `user-attachments` 地址
+3. 预览视频使用 H.264 MP4，以获得更好的浏览器兼容性
+4. 每次录像同时显示人手与仿真，固定标定手势。更新 YAML 时也更新本页说明；已有视频仍对应旧参数时，新增配置编号，不覆盖旧参数
 
-GitHub 视频附件的操作见[官方说明](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/attaching-files)。较大原片可保存在团队共享存储，在本页链接；不必全部放进 Git 历史。
+GitHub 视频附件的操作见[官方说明](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/attaching-files)
 
 ## 文件结构
 
@@ -216,4 +210,3 @@ videos/S03/              S03-baseline.mov、S03-zero offsets.mov、S03-last.mov
 README.md                参数说明与场景视频对比
 ```
 
-configs 中是整理时复制的 YAML。之后分享实验以 configs 文件为准：修改此处并在运行时显式指定 `--config configs/文件名.yaml`（run_test.py），或 `--retarget-config configs/文件名.yaml`（teleop_sim.py，路径相对于运行目录）。根目录旧 YAML 和本机工具未删除，但不会上传，也不会自动与 configs 同步。
