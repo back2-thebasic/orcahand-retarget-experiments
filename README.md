@@ -1,71 +1,70 @@
-# ORCA Hand Retarget 测试对比
+# ORCA Hand Retargeting Test Comparison
+[English](README.md) | [Chinese](README.zh-CN.md) | [Korean](README.ko.md)
 
-ORCA v1 右手 · MediaPipe · Adaptive Analytical · MuJoCo 仿真
+ORCA v1 right hand · MediaPipe · Adaptive Analytical · MuJoCo simulation
 
-本仓库用于分享 YAML 参数与测试视频。包括配置改动，和3个场景比较视频。README 中使用兼容性更好的 H.264 预览，原始 MOV 可通过每段视频下方的链接下载
+This repository shares YAML parameters and test videos. It includes configuration changes and comparison videos for three scenarios. The README uses H.264 previews for better compatibility; the original MOV files can be downloaded from the link below each video.
 
-## 配置与改动说明
+## Configuration and Change Notes
 
-### A：原始官方配置
+### A: Original Official Configuration
 
-**文件：[baseline.yaml](configs/baseline.yaml)**
+**File: [baseline.yaml](configs/baseline.yaml)**
 
-- 用途：作为baseline，保留额外指尖偏移
-- `w_pos: 1.0`，`w_dir: 10.0`，`w_full_hand: 1.0`
-- `norm_delta: 0.04`，`lp_alpha: 1.0`（无输出低通平滑）
+- Purpose: Serves as the baseline and retains the additional fingertip offsets
+- `w_pos: 1.0`, `w_dir: 10.0`, `w_full_hand: 1.0`
+- `norm_delta: 0.04`, `lp_alpha: 1.0` (no low-pass smoothing of the output)
 
-### B：零偏移配置
+### B: Zero-Offset Configuration
 
-**文件：[baseline_zero_offsets.yaml](configs/baseline_zero_offsets.yaml)**
+**File: [baseline_zero_offsets.yaml](configs/baseline_zero_offsets.yaml)**
 
-- 相对 A：五指 `fingertip_offsets_m` 均为 `[0, 0, 0]`，直接使用 URDF 指尖 frame 原点，消除指尖偏移
-- 其他 YAML 参数与 A 一致
-- 修改目的：避免在已定义的指尖位置上额外叠加指尖长度
-- 注意：该修改也影响自动尺度标定，不是固定尺度下的纯几何对照
+- Relative to A: Sets `fingertip_offsets_m` to `[0, 0, 0]` for all five fingers, directly using each URDF fingertip frame origin and eliminating fingertip offsets
+- All other YAML parameters are identical to A
+- Purpose of the change: Avoid adding an extra fingertip length to an already defined fingertip position
+- Note: This change also affects automatic scale calibration, so it is not a pure geometry comparison at a fixed scale
 
-### C：调整参数后配置
+### C: Configuration with Adjusted Parameters
 
-**文件：[last.yaml](configs/last.yaml)**
+**File: [last.yaml](configs/last.yaml)**
 
-- 当前相对 B：`w_pos: 1.0 → 2.0`，`w_full_hand: 1.0 → 0.5`
-- 修改目的：提高位置约束并降低全手形状约束的权重，观察是否改善捏合，同时检查姿态是否退化
+- Current changes relative to B: `w_pos: 1.0 → 2.0`, `w_full_hand: 1.0 → 0.5`
+- Purpose of the change: Increase the position-constraint weight and reduce the full-hand shape-constraint weight to observe whether pinching improves while checking for pose degradation
 
-> B/C 需要 retarget 代码支持 `fingertip_offsets_m`；未修改的上游代码不一定读取此字段
+> B and C require retargeting code that supports `fingertip_offsets_m`; unmodified upstream code may not read this field.
 
-## 指尖偏移：修改原因与影响
+## Fingertip Offsets: Rationale and Effects
 
-### 为什么默认配置有偏移量？
+### Why Does the Default Configuration Use Offsets?
 
-Orca 的 retarget 实现使用经验偏移，补偿 URDF 坐标系原点与实际指腹位置之间的差异。它是几何位置补偿，不是电机零位或关节角度偏置。
+Orca's retargeting implementation uses empirical offsets to compensate for the difference between the URDF coordinate-frame origins and the actual finger-pad positions. This is a geometric position correction, not a motor zero-position or joint-angle offset.
 
-上游代码将这些数值标注为手工调整的经验值，并计划使用碰撞几何定义替代，因此它们不一定适合所有模型版本。默认拇指、食指、中指、无名指、小指分别沿局部 z 轴增加 **30.5、43.3、45.3、45.3、38.3 mm**。
+The upstream code labels these values as manually tuned empirical values and plans to replace them with definitions based on collision geometry, so they may not suit every model version. By default, the thumb, index, middle, ring, and little fingers are extended along their local z-axes by **30.5, 43.3, 45.3, 45.3, and 38.3 mm**, respectively.
 
-来源：[Orca 上游偏移定义](https://github.com/orcahand/orca_teleop/blob/main/src/orca_teleop/retargeting/constants.py)、[相关几何工具说明](https://github.com/orcahand/orca_teleop/blob/main/src/orca_teleop/retargeting/utils.py)。
+Sources: [Orca upstream offset definitions](https://github.com/orcahand/orca_teleop/blob/main/src/orca_teleop/retargeting/constants.py), [related geometry utility notes](https://github.com/orcahand/orca_teleop/blob/main/src/orca_teleop/retargeting/utils.py).
 
-### 为什么设置零偏移后可以捏合？
+### Why Can the Fingers Pinch After Setting the Offsets to Zero?
 
-优化器使用的指尖位置为：
+The fingertip positions used by the optimizer are:
 
-- **默认偏移：** URDF 指尖 frame 的位置，加上经该 frame 旋转后的局部偏移。
-- **零偏移：** 直接使用 URDF 指尖 frame 的位置。
+- **Default offsets:** The positions of the URDF fingertip frames plus the local offsets rotated by those frames.
+- **Zero offsets:** The positions of the URDF fingertip frames directly.
 
-当前 v1 URDF 已通过固定关节定义指尖位置。例如，食指指尖 frame 相对于末节 link 的位置为 `[-9, 0, 35] mm`；该固定关节无旋转，叠加默认偏移后，计算点变为 `[-9, 0, 78.3] mm`。这些是相对于末节 link 的坐标，并非整根手指长度。
+The current v1 URDF already defines fingertip positions through fixed joints. For example, the index-finger fingertip frame is located at `[-9, 0, 35] mm` relative to the distal link. Because this fixed joint has no rotation, adding the default offset changes the computed point to `[-9, 0, 78.3] mm`. These coordinates are relative to the distal link; they do not represent the full finger length.
 
-如果额外偏移使计算点偏离实际接触位置，优化器可能让这些“虚拟指尖”接近目标，但仿真中的真实指尖仍存在间隙。设置零偏移后，计算点回到 URDF 指尖 frame，因此可能改善实际指尖的对齐与捏合。
+If an additional offset moves the computed point away from the actual contact position, the optimizer may bring these "virtual fingertips" close to the target while a gap remains between the real fingertips in the simulation. Setting the offsets to zero returns the computed points to the URDF fingertip frames and may therefore improve actual fingertip alignment and pinching.
 
-**本次观察：** 原始配置下，拇指与食指无法完成捏合；设置零偏移后能够完成。
+**Observation in this test:** With the original configuration, the thumb and index finger could not complete a pinch. They could complete it after the offsets were set to zero.
 
-这一结果支持“经验偏移与当前模型可能不匹配”的解释，但不能证明默认配置在所有模型上都错误，也不能证明偏移是唯一原因。URDF 指尖 frame 不一定恰好位于实际接触表面，后续仍可能需要更小、经过几何验证的补偿。
+This result supports the interpretation that the empirical offsets may not match the current model, but it does not prove that the default configuration is wrong for every model or that the offsets are the only cause. The URDF fingertip frames may not lie exactly on the actual contact surfaces, so smaller, geometrically validated corrections may still be needed.
 
+**Zero offsets only change the points used for retargeting calculations. They do not change the model geometry, collision bodies, or joint limits, nor do they directly provide smoothing or grip-force control.** Visual closure does not mean that physical contact or stable grasping has been verified.
 
-**零偏移只改变 retarget 使用的计算点，不改变模型外形、碰撞体或关节限位，也不直接提供平滑或夹持力控制。** 视觉上闭合不等于已经验证物理接触或稳定抓持。
+## How to Download and Run the YAML Files
 
+### 1. Where Should the YAML Files Go?
 
-## 如何下载和运行 YAML
-
-### 1. YAML 放在哪里？
-
-在本仓库点击 **Code → Download ZIP**，解压后将 `configs/` 放到你本机 Orca 项目的 `orca_adaptive_test/` 中，保持如下结构。也可以在单个 YAML 页面点击 Raw 下载对应文件。
+In this repository, click **Code → Download ZIP**. After extracting it, place `configs/` inside `orca_adaptive_test/` in your local Orca project, preserving the structure below. You can also open an individual YAML page and click Raw to download that file.
 
 ```text
 Orcahand/
@@ -82,13 +81,13 @@ Orcahand/
         └── last.yaml
 ```
 
-不要放进 `.venv` 或 Python 的 site-packages。已有同名实验文件时先保留旧版本，避免旧视频失去对应参数。
+Do not place them in `.venv` or Python's site-packages. If experiment files with the same names already exist, preserve the old versions first so that older videos do not lose their corresponding parameters.
 
-### 2. 运行前提
+### 2. Prerequisites
 
-B/C 的零偏移字段需要代码支持。打开 `orca_teleop/src/orca_teleop/retargeting/adaptive_analytical.py`，在 `_build_frame_indices()` 中检查是否已经读取 `fingertip_offsets_m`。本次测试使用的代码已有此支持。
+The zero-offset field used by B and C requires code support. Open `orca_teleop/src/orca_teleop/retargeting/adaptive_analytical.py` and check whether `_build_frame_indices()` already reads `fingertip_offsets_m`. The code used for this test includes that support.
 
-如果没有，将函数末尾设置 `_frame_offsets` 的那一小段替换为以下代码（放在函数内部，保持缩进），其他代码不动：
+If it does not, replace the small block at the end of the function that sets `_frame_offsets` with the following code. Keep it inside the function with the same indentation, and leave all other code unchanged:
 
 ```python
         self._frame_offsets = [np.zeros(3, dtype=np.float64) for _ in self._computed_frame_names]
@@ -103,34 +102,34 @@ B/C 的零偏移字段需要代码支持。打开 `orca_teleop/src/orca_teleop/r
             self._frame_offsets[frame_idx] = offset
 ```
 
-没有此支持时，单纯下载 B/C YAML 不能保证零偏移生效。A 未设置该字段，仍使用旧偏移。确保运行环境导入的是你修改的源码。
+Without this support, simply downloading the B or C YAML file does not guarantee that zero offsets will take effect. A does not set this field and therefore continues to use the old offsets. Ensure that the runtime imports the source code you modified.
 
-### 3. 选择 A、B 或 C，然后启动
+### 3. Select A, B, or C, Then Launch
 
-先进入 `orca_teleop`，替换为自己的实际路径：
+First, enter `orca_teleop`, replacing the path with your actual path:
 
 ```bash
 cd /xxx/Orcahand/orca_teleop
 ```
 
-三选一，在同一个终端设置本次配置：
+Choose one of the following and set the configuration for this run in the same terminal:
 
 ```bash
-# A：原始配置
+# A: Original configuration
 RETARGET_CONFIG=../orca_adaptive_test/configs/baseline.yaml
 ```
 
 ```bash
-# B：五指零偏移
+# B: Zero offsets for all five fingers
 RETARGET_CONFIG=../orca_adaptive_test/configs/baseline_zero_offsets.yaml
 ```
 
 ```bash
-# C：当前最新配置
+# C: Current latest configuration
 RETARGET_CONFIG=../orca_adaptive_test/configs/last.yaml
 ```
 
-然后执行统一启动命令。直接使用虚拟环境中的 mjpython，无需先 activate：
+Then run the common launch command. Use `mjpython` from the virtual environment directly; there is no need to activate the environment first:
 
 ```bash
 .venv/bin/mjpython scripts/teleop_sim.py \
@@ -144,98 +143,99 @@ RETARGET_CONFIG=../orca_adaptive_test/configs/last.yaml
   --retarget-config "$RETARGET_CONFIG"
 ```
 
-每行末尾的反斜杠后不要加空格。v2 YAML 不适用于这条 v1 命令
+Do not add spaces after the backslash at the end of each line. The v2 YAML files are not compatible with this v1 command.
 
-踩的一个坑：不要同时开启两个使用同一端口的仿真。若绿色骨架正常但仿真不动，检查 `Publisher connected` 日志，并用 `lsof -nP -iTCP:50051 -sTCP:LISTEN` 查看是否有旧实例残留
+One issue encountered during testing: Do not run two simulations that use the same port at the same time. If the green skeleton moves normally but the simulation does not, check the `Publisher connected` log and run `lsof -nP -iTCP:50051 -sTCP:LISTEN` to see whether an old instance is still running.
 
-## S01：张手、半握、握拳
+## S01: Open Hand, Half-Close, and Fist
 
-动作：张手 → 半握 → 握拳 → 张开，重复 3 次
+Motion: Open hand → half-close → make a fist → open, repeated three times
 
-### A：原始配置
+### A: Original Configuration
 
 https://github.com/user-attachments/assets/c61373b0-8059-412d-8560-4a3ba6c9c63a
 
-[查看或下载原始 MOV](videos/S01/S01-baseline.mov)
+[View or download the original MOV](videos/S01/S01-baseline.mov)
 
-### B：零偏移
+### B: Zero Offsets
 
 https://github.com/user-attachments/assets/29e975da-077b-48ba-9e53-38181359c819
 
-[查看或下载原始 MOV](videos/S01/S01-zero%20offsets.mov)
+[View or download the original MOV](videos/S01/S01-zero%20offsets.mov)
 
-### C：当前最新配置
+### C: Current Latest Configuration
 
 https://github.com/user-attachments/assets/25fd48fd-ee29-44b5-9cb1-a7689365d1fd
 
-[查看或下载原始 MOV](videos/S01/S01-last.mov)
+[View or download the original MOV](videos/S01/S01-last.mov)
 
-**本场景结论：** 所有yaml完成较好。B中对大拇指的reatrgert并不是太好
+**Conclusion for this scenario:** All YAML configurations performed well. Thumb retargeting in B was less accurate.
 
-## S02：拇指—食指慢速捏合与释放
+## S02: Slow Thumb–Index Pinch and Release
 
-动作：慢速靠近 → 捏合 → 释放，重复 3 次
+Motion: Slowly approach → pinch → release, repeated three times
 
-### A：原始配置
+### A: Original Configuration
 
 https://github.com/user-attachments/assets/4c55b450-9961-4b50-bdd5-de74a9e2b264
 
-[查看或下载原始 MOV](videos/S02/S02-baseline.mov)
+[View or download the original MOV](videos/S02/S02-baseline.mov)
 
-### B：零偏移
+### B: Zero Offsets
 
 https://github.com/user-attachments/assets/8d29cfac-a2db-4344-89fa-7863eeb2a6a5
 
-[查看或下载原始 MOV](videos/S02/S02-zero%20offsets.mov)
+[View or download the original MOV](videos/S02/S02-zero%20offsets.mov)
 
-### C：当前最新配置
+### C: Current Latest Configuration
 
 https://github.com/user-attachments/assets/c37a71f9-74a2-4a70-8b3a-697967042f29
 
-[查看或下载原始 MOV](videos/S02/S02-last.mov)
+[View or download the original MOV](videos/S02/S02-last.mov)
 
-**本场景结论：** 官方默认配置无法完成捏合动作，拇指和食指始终有间隙。B和C对该任务完成情况较好，但是B中拇指捏合时方向不太自然
+**Conclusion for this scenario:** The official default configuration could not complete the pinch; a gap remained between the thumb and index finger. B and C performed this task well, but the thumb's direction during the pinch looked less natural in B.
 
-## S03：三指抓持与释放
+## S03: Three-Finger Grasp and Release
 
-动作：拇指—食指-中指捏合 → 释放，重复 3 次。
+Motion: Thumb–index–middle-finger pinch → release, repeated three times.
 
-### A：原始配置
+### A: Original Configuration
 
 https://github.com/user-attachments/assets/52aaa9e6-61f5-478b-94e8-735014e2cfac
 
-[查看或下载原始 MOV](videos/S03/S03-baseline.mov)
+[View or download the original MOV](videos/S03/S03-baseline.mov)
 
-### B：零偏移
+### B: Zero Offsets
 
 https://github.com/user-attachments/assets/57ebade0-5c62-416b-878a-cc3ec69e8192
 
-[查看或下载原始 MOV](videos/S03/S03-zero%20offsets.mov)
+[View or download the original MOV](videos/S03/S03-zero%20offsets.mov)
 
-### C：当前最新配置
+### C: Current Latest Configuration
 
 https://github.com/user-attachments/assets/505e5a70-ac18-4eff-b557-5c8502d0ffa5
 
-[查看或下载原始 MOV](videos/S03/S03-last.mov)
+[View or download the original MOV](videos/S03/S03-last.mov)
 
-**本场景结论：** 空手测试仅验证抓持姿态，不代表能抓住物体。官方配置依然无法捏合。B和C完成的较好，但B在松开时，对拇指的retarget不够好，拇指的IP Joint（最靠近指尖的一个关节）的retarget不太自然
+**Conclusion for this scenario:** Testing without an object only verifies the grasping pose; it does not demonstrate that the hand can hold an object. The official configuration still could not complete the pinch. B and C performed well, but when B released, the thumb retargeting was less accurate, and the retargeting of the thumb IP joint—the joint closest to the fingertip—looked less natural.
 
-## 如何添加视频
+## How to Add Videos
 
-1. 原始视频保存在对应的 `videos/S01/`、`S02/`、`S03/` 目录中
-2. 普通仓库视频链接不会可靠地生成 README 内嵌播放器。README 中使用上传到 GitHub Markdown 编辑区后生成的 `user-attachments` 地址
-3. 预览视频使用 H.264 MP4，以获得更好的浏览器兼容性
-4. 每次录像同时显示人手与仿真，固定标定手势。更新 YAML 时也更新本页说明；已有视频仍对应旧参数时，新增配置编号，不覆盖旧参数
+1. Store the original videos in the corresponding `videos/S01/`, `S02/`, and `S03/` directories.
+2. Regular repository video links do not reliably generate embedded players in a README. This README uses `user-attachments` URLs generated by uploading videos in GitHub's Markdown editor.
+3. Use H.264 MP4 for preview videos to provide better browser compatibility.
+4. Show both the human hand and the simulation in every recording, and use a consistent calibration pose. When updating a YAML file, update the description on this page as well. If existing videos still correspond to older parameters, add a new configuration identifier instead of overwriting the old parameters.
 
-GitHub 视频附件的操作见[官方说明](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/attaching-files)
+See the [official instructions](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/attaching-files) for working with GitHub video attachments.
 
-## 文件结构
+## File Structure
 
 ```text
-configs/                 所有分享用 YAML
-videos/S01/              S01-baseline.mov、S01-zero offsets.mov、S01-last.mov
-videos/S02/              S02-baseline.mov、S02-zero offsets.mov、S02-last.mov
-videos/S03/              S03-baseline.mov、S03-zero offsets.mov、S03-last.mov
-README.md                参数说明与场景视频对比
+configs/                 All shared YAML files
+videos/S01/              S01-baseline.mov, S01-zero offsets.mov, S01-last.mov
+videos/S02/              S02-baseline.mov, S02-zero offsets.mov, S02-last.mov
+videos/S03/              S03-baseline.mov, S03-zero offsets.mov, S03-last.mov
+README.md                English version (repository default)
+README.zh-CN.md          Chinese version
+README.ko.md             Korean version
 ```
-
