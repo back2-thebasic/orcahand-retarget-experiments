@@ -2,7 +2,7 @@
 
 ORCA v1 右手 · MediaPipe · Adaptive Analytical · MuJoCo 仿真
 
-本仓库仅用于分享 **YAML 参数与测试视频**。先看配置改动，再按场景比较视频。视频尚未放入；下方文件链接在加入对应文件后可用，当前不代表已有测试结果。
+本仓库用于分享 **YAML 参数与测试视频**。先看配置改动，再按场景直接播放和比较视频。README 中使用兼容性更好的 H.264 预览，原始 MOV 可通过每段视频下方的链接下载。
 
 ## 配置与改动说明
 
@@ -134,13 +134,23 @@ RETARGET_CONFIG=../orca_adaptive_test/configs/adaptive_v1_experiment.yaml
 
 动作：张手 → 半握 → 握拳 → 张开，各姿态保持约 3 秒，重复 5 次。
 
-| A：原始配置 | B：零偏移 | C：参数实验 |
-| --- | --- | --- |
-| [查看视频](videos/S01/A.mp4) | [查看视频](videos/S01/B.mp4) | [查看视频](videos/S01/C.mp4) |
-| 待填写观察 | 待填写观察 | 待填写观察 |
+### A：原始配置
 
-**同屏对比视频：** 待添加。
-<!-- 在下一行粘贴 GitHub 上传生成的视频附件地址；推荐 A/B/C 三栏合成视频。 -->
+https://github.com/user-attachments/assets/c61373b0-8059-412d-8560-4a3ba6c9c63a
+
+[查看或下载原始 MOV](videos/S01/S01-baseline.mov)
+
+### B：零偏移
+
+https://github.com/user-attachments/assets/29e975da-077b-48ba-9e53-38181359c819
+
+[查看或下载原始 MOV](videos/S01/S01-zero%20offsets.mov)
+
+### C：参数实验
+
+https://github.com/user-attachments/assets/25fd48fd-ee29-44b5-9cb1-a7689365d1fd
+
+[查看或下载原始 MOV](videos/S01/S01-last.mov)
 
 **本场景结论：** 待填写。重点比较姿态完成程度、保持抖动和突然跳变。
 
@@ -148,13 +158,23 @@ RETARGET_CONFIG=../orca_adaptive_test/configs/adaptive_v1_experiment.yaml
 
 动作：慢速靠近 → 捏合保持约 3 秒 → 慢速释放，重复 5 次。
 
-| A：原始配置 | B：零偏移 | C：参数实验 |
-| --- | --- | --- |
-| [查看视频](videos/S02/A.mp4) | [查看视频](videos/S02/B.mp4) | [查看视频](videos/S02/C.mp4) |
-| 待填写观察 | 待填写观察 | 待填写观察 |
+### A：原始配置
 
-**同屏对比视频：** 待添加。
-<!-- 在下一行粘贴 GitHub 上传生成的视频附件地址；推荐 A/B/C 三栏合成视频。 -->
+https://github.com/user-attachments/assets/4c55b450-9961-4b50-bdd5-de74a9e2b264
+
+[查看或下载原始 MOV](videos/S02/S02-baseline.mov)
+
+### B：零偏移
+
+https://github.com/user-attachments/assets/8d29cfac-a2db-4344-89fa-7863eeb2a6a5
+
+[查看或下载原始 MOV](videos/S02/S02-zero%20offsets.mov)
+
+### C：参数实验
+
+https://github.com/user-attachments/assets/c37a71f9-74a2-4a70-8b3a-697967042f29
+
+[查看或下载原始 MOV](videos/S02/S02-last.mov)
 
 **本场景结论：** 待填写。重点比较指尖间隙、错位、保持稳定性和释放。视觉闭合不等于已验证物理接触。
 
@@ -162,22 +182,33 @@ RETARGET_CONFIG=../orca_adaptive_test/configs/adaptive_v1_experiment.yaml
 
 动作：拇指—食指靠近 → 中指加入 → 三指保持约 3 秒 → 中指退出 → 释放，重复 5 次。
 
-| A：原始配置 | B：零偏移 | C：参数实验 |
-| --- | --- | --- |
-| [查看视频](videos/S03/A.mp4) | [查看视频](videos/S03/B.mp4) | [查看视频](videos/S03/C.mp4) |
-| 待填写观察 | 待填写观察 | 待填写观察 |
+### A：原始配置
 
-**同屏对比视频：** 待添加。
-<!-- 在下一行粘贴 GitHub 上传生成的视频附件地址；推荐 A/B/C 三栏合成视频。 -->
+https://github.com/user-attachments/assets/52aaa9e6-61f5-478b-94e8-735014e2cfac
+
+[查看或下载原始 MOV](videos/S03/S03-baseline.mov)
+
+### B：零偏移
+
+https://github.com/user-attachments/assets/57ebade0-5c62-416b-878a-cc3ec69e8192
+
+[查看或下载原始 MOV](videos/S03/S03-zero%20offsets.mov)
+
+### C：参数实验
+
+https://github.com/user-attachments/assets/505e5a70-ac18-4eff-b557-5c8502d0ffa5
+
+[查看或下载原始 MOV](videos/S03/S03-last.mov)
 
 **本场景结论：** 待填写。重点比较中指加入是否破坏已有捏合、拇指跳转和释放。空手测试仅验证抓持姿态，不代表能抓住物体。
 
 ## 如何添加视频
 
-1. 每个场景的三个视频分别命名为 `A.mp4`、`B.mp4`、`C.mp4`，放进对应的 `videos/S01/`、`S02/`、`S03/`。如果是 MOV，修改上方链接后缀即可，不要只重命名冒充 MP4。
-2. 表格提供三个配置并排的视频入口。**普通仓库视频链接不等于 README 内嵌播放器，README 也不提供三个独立播放器的一键同步控制。**
-3. 若需要“同时播放三个结果”，将 A/B/C 合成一条带配置标签的三栏视频，保持原始速度，以动作开始点对齐。上传到 GitHub Markdown 编辑区，把生成的视频附件地址单独粘贴到对应“同屏对比视频”处；用 Preview 确认实际播放效果。
-4. 每次录像同时显示人手与仿真，固定标定手势和光照。更新 YAML 时也更新本页说明；已有视频仍对应旧参数时，新增配置编号，不覆盖旧参数。
+1. 原始视频保存在对应的 `videos/S01/`、`S02/`、`S03/` 目录中。
+2. 普通仓库视频链接不会可靠地生成 README 内嵌播放器。README 中使用上传到 GitHub Markdown 编辑区后生成的 `user-attachments` 地址；该地址必须单独占一段。
+3. 预览视频建议使用 H.264 MP4，以获得更好的浏览器兼容性。GitHub 免费账户的视频附件通常不能超过 10 MB。
+4. README 不提供三个独立播放器的一键同步控制。若需要同时播放 A/B/C，请先合成一条带配置标签的三栏视频，以动作开始点对齐后再上传。
+5. 每次录像同时显示人手与仿真，固定标定手势和光照。更新 YAML 时也更新本页说明；已有视频仍对应旧参数时，新增配置编号，不覆盖旧参数。
 
 GitHub 视频附件的操作见[官方说明](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/attaching-files)。较大原片可保存在团队共享存储，在本页链接；不必全部放进 Git 历史。
 
@@ -185,9 +216,9 @@ GitHub 视频附件的操作见[官方说明](https://docs.github.com/en/get-sta
 
 ```text
 configs/                 所有分享用 YAML
-videos/S01/              A.mp4、B.mp4、C.mp4
-videos/S02/              A.mp4、B.mp4、C.mp4
-videos/S03/              A.mp4、B.mp4、C.mp4
+videos/S01/              S01-baseline.mov、S01-zero offsets.mov、S01-last.mov
+videos/S02/              S02-baseline.mov、S02-zero offsets.mov、S02-last.mov
+videos/S03/              S03-baseline.mov、S03-zero offsets.mov、S03-last.mov
 README.md                参数说明与场景视频对比
 ```
 
